@@ -1,9 +1,11 @@
-// 2D Distance fields
+// Distance field learning
 //
 // 1. Configurable distance from a 2D polygon, where a polygon is a collection of edges
-// 
+//
+// If a polygon is a collection of edges, how do we determine distance for a given point?
+// Is it a combination of values?  Or is it simply the closest edge?
 
-const int MAX_COORDS = 4;
+const int MAX_COORDS = 3;
 vec2 polygon[MAX_COORDS];
 
 
@@ -20,10 +22,10 @@ float segmentDistance(in vec2 uv, in vec2 p1, in vec2 p2) {
     // u =  ((x3 - x1) * px + (y3 - y1) * py) / float(something)
     float u = ((uv.x - p1.x) * line.x + (uv.y - p1.y) * line.y) / (line.x * line.x + line.y * line.y);
 	u = clamp(u, 0., 1.);
-    
+
     float x = (p1.x + u * line.x) - uv.x;
     float y = (p1.y + u * line.y) - uv.y;
-    
+
     return sqrt(x * x + y * y) * 10.;
 }
 
@@ -32,16 +34,16 @@ float polygonDistance(in vec2 uv) {
     float winner = 1.;
     for (int i = 0; i < MAX_COORDS; ++i) {
         float distance;
-        
+
         vec2 a = polygon[i];
         vec2 b = polygon[int(mod(float(i + 1), float(MAX_COORDS)))];
-        
+
         if (false) { //fract(iGlobalTime * 0.5) < 0.5) {
 			distance = lineDistance(uv, a, b);
     	} else {
 			distance = segmentDistance(uv, a, b);
     	}
-        
+
         if (distance < winner) {
             winner = distance;
         }
@@ -53,11 +55,12 @@ float polygonDistance(in vec2 uv) {
 void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
 	vec2 uv = fragCoord.xy / iResolution.xy;
 
+
     polygon[0] = vec2(0.25, 0.25);
     polygon[1] = vec2(0.75, 0.75);
     polygon[2] = vec2(0.25, 0.75);
-    
+
 	 float distance = polygonDistance(uv);
-    
+
     fragColor = vec4(vec3(fract(1.0 - distance)), 1.);
 }
