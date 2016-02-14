@@ -12,25 +12,25 @@
 // Two strategies:
 // - Use traditional ray tracing where we cast a ray and see if it hits geometry.
 // - Use ray marching, same concept except we step each ray
- 
+
 const float pi = 3.14159265359;
- 
+
 vec3 offy(float i) {
     float f = sin(iGlobalTime) * .5 + .5;
     return vec3(0);//texture2D(iChannel0, vec2(i * 0.07 + f, i * 0.09 +f)).xy, 0.);
 }
- 
+
 struct Ray {
     vec3 origin;
     vec3 direction;
 };
-   
+
 struct AABB {
     vec3 lower;
     vec3 upper;
 };
- 
- 
+
+
 mat3 rotateX(float th) {
     float c = cos(th);
     float s = sin(th);
@@ -38,8 +38,8 @@ mat3 rotateX(float th) {
                 0, c, -s,
                 0, s, c);
 }
- 
- 
+
+
 mat3 rotateY(float th) {
     float c = cos(th);
     float s = sin(th);
@@ -47,7 +47,7 @@ mat3 rotateY(float th) {
                 0, 1, 0,
                 -s,0, c);
 }
- 
+
 // via http://prideout.net/blog/?p=64
 bool IntersectBox(Ray r, AABB box, out float t0, out float t1)
 {
@@ -62,23 +62,23 @@ bool IntersectBox(Ray r, AABB box, out float t0, out float t1)
     t1 = min(t.x, t.y);
     return t0 <= t1;
 }
- 
- 
-bool pointInsideBox(vec3 point, AABB box) {    
+
+
+bool pointInsideBox(vec3 point, AABB box) {
     vec3 lower = box.lower;
     vec3 upper = box.upper;
- 
+
     return (lower.x <= point.x && upper.x >= point.x &&
             lower.y <= point.y && upper.y >= point.y &&
             lower.z <= point.z && upper.z >= point.z);
 }
- 
- 
+
+
 float rayDistance;
 bool shittyRayMarch(Ray ray, AABB box) {
     const float steps = 40.;
     const float fraction = 0.5 / steps;
-   
+
     vec3 delta = vec3(0.);
     ///for (float i = 0.; i < steps; i += 1.) {
         //delta = delta + (fraction * ray.direction);
@@ -92,25 +92,25 @@ bool shittyRayMarch(Ray ray, AABB box) {
     //}
     return false;
 }
- 
- 
+
+
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     vec2 uv = fragCoord.xy / iResolution.xy;
-   
+
     float st = 0.15 * pi * sin(iGlobalTime);
-   
+
     mat3 rot = rotateY(st) * rotateX(st);
     vec3 origin = rot * vec3(uv, 0.0);
     vec2 uvp = (uv * 2. - 1.) * .4;
     vec3 direction = normalize(rot * vec3(uvp.x, uvp.y, 1.0));
-   
+
     Ray ray = Ray (origin, direction);
-   
+
     AABB box1 = AABB( vec3(0.25, 0.0, 0.15), vec3(0.55, 0.55, 2.55));
     AABB box2 = AABB( vec3(0.65, 0.65, 0.55), vec3(0.85, 0.85, 0.85));
     AABB box3 = AABB( vec3(0.0, 0.65, 0.95), vec3(0.85, 0.85, 0.85));
-   
+
     if (shittyRayMarch(ray, box1)) {
         fragColor = vec4(rayDistance, rayDistance, rayDistance, 1.);
         return;
@@ -123,5 +123,5 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     }
     fragColor = vec4(0);
     // uv,0.5+0.5*sin(iGlobalTime)
-   
+
 }
